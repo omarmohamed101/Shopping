@@ -1,5 +1,6 @@
 import csv
 import sys
+import datetime
 
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -59,7 +60,28 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    raise NotImplementedError
+    label = list()
+    evidence = list()
+    with open(filename) as csvfile:
+        spamreader = csv.reader(csvfile)
+        next(spamreader)
+
+        for row in spamreader:
+            label.append(1 if row[17] == "TRUE" else 0)
+
+            evidence.append(row[:17])
+            evidence[-1][-1] = 1 if evidence[-1][-1] == "TRUE" else 0
+            evidence[-1][-2] = 1 if evidence[-1][-2] == "Returning_Visitor" else 0
+            mon = "Jun" if row[10] == 'June' else row[10]
+            evidence[-1][10] = datetime.datetime.strptime(mon, '%b').month
+
+            intl = [int(evidence[-1][0]), float(evidence[-1][1]), int(evidence[-1][2]), float(evidence[-1][3]),
+                    int(evidence[-1][4])]
+            intl += (list(map(float, evidence[-1][5:10])) + list(map(int, evidence[-1][10:])))
+
+            evidence[-1] = intl
+
+    return evidence, label
 
 
 def train_model(evidence, labels):
